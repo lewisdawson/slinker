@@ -1,0 +1,35 @@
+{
+  "name": "node-module-linker",
+  "version": "1.0.0",
+  "description": "A simple module used to link node module dependencies together.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/indexTest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lewisdawson/node-module-linker.git"
+  },
+  "keywords": [
+    "npm",
+    "node_modules",
+    "modular",
+    "module",
+    "linking",
+    "require",
+    "symlink"
+  ],
+  "author": "Lewis Dawson <ldawson7777@yahoo.com> (https://github.com/lewisdawson)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lewisdawson/node-module-linker/issues"
+  },
+  "homepage": "https://github.com/lewisdawson/node-module-linker",
+  "dependencies": {
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "chai": "^3.1.0",
+    "mocha": "^2.2.5"
+  }
+}
