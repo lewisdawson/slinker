@@ -78,34 +78,51 @@ describe('indexTest', function() {
 	/**
 	 * Removes all existing symlinks from the test directory.
 	 */
-	function removeExistingSymlinks() {
+	function removeExistingSymlinks(onComplete) {
 		var globPath = path.join(nodeModulesPath, symlinkPrefix + '**'); 
 
 		glob(globPath, function(err, files) {
 			_.each(files, function(file) {
 				fs.unlinkSync(file);
 			});
+
+			onComplete();
 		});
 	}
 
 	/**
 	 * Executed before each test.
 	 */
-	beforeEach(function() {
-		// TODO: this is an async function...need to finish the deletion before moving on
-		removeExistingSymlinks();
+	beforeEach(function(done) {
+		var allModules = symlinkModules.concat(noSymlinkModules);
+		
+		removeExistingSymlinks(function() {
+			assertSymlinksNotExist(allModules);
+
+			done();
+		});
 	});
 
+	it('#link(): should add no symlinks if no directories (modules) are specified in options.modules', function(done) {
+		var allModules = symlinkModules.concat(noSymlinkModules);
 
-	it('#link(): should add no symlinks if no directories (modules) are specified in options.modules', function() {
-		
+		slinker.link({
+			modules: [],
+			modulesBasePath: modulesBasePath,
+			symlinkPrefix: symlinkPrefix,
+			nodeModulesPath: nodeModulesPath,
+			onComplete: function() {
+				assertSymlinksNotExist(allModules);
+
+				done();
+			},
+			onError: function(err) {
+				throw Error('Unexpected error occurred while creating symlinks! ' + err);
+			}
+		});
 	});
 
 	it('#link(): should add a symlink for each directory (module) name specified in options.modules', function(done) {
-		var allModules = symlinkModules.concat(noSymlinkModules);
-
-		assertSymlinksNotExist(allModules);
-
 		slinker.link({
 			modules: symlinkModules,
 			modulesBasePath: modulesBasePath,
