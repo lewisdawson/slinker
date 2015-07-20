@@ -1,14 +1,14 @@
 {
-  "name": "node-module-linker",
+  "name": "slinker",
   "version": "1.0.0",
-  "description": "A simple module used to link node module dependencies together.",
+  "description": "A simple module used to symlink node module dependencies together.",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/indexTest.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lewisdawson/node-module-linker.git"
+    "url": "https://github.com/lewisdawson/slinker.git"
   },
   "keywords": [
     "npm",
@@ -22,14 +22,15 @@
   "author": "Lewis Dawson <ldawson7777@yahoo.com> (https://github.com/lewisdawson)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lewisdawson/node-module-linker/issues"
+    "url": "https://github.com/lewisdawson/slinker/issues"
   },
-  "homepage": "https://github.com/lewisdawson/node-module-linker",
+  "homepage": "https://github.com/lewisdawson/slinker",
   "dependencies": {
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "chai": "^3.1.0",
+    "glob": "^5.0.14",
     "mocha": "^2.2.5"
   }
 }
