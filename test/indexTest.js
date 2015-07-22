@@ -1,3 +1,6 @@
+/**
+ * Mocha test class used to test the functionality of index.js.
+ */
 'use strict';
 
 var should = require('chai').should(),
@@ -14,13 +17,21 @@ describe('indexTest', function() {
 		noSymlinkModules,
 		nodeModulesPath,
 		symlinkPrefix,
-		modulesBasePath;
+		modulesBasePath,
+		defaultSlinkerConfig;
 
 	modulesBasePath = __dirname;
 	symlinkModules = ['module_one', 'module_three'];
 	noSymlinkModules = ['module_two'];
 	nodeModulesPath = path.join(modulesBasePath, 'mock_node_modules');
 	symlinkPrefix = '@';
+
+	defaultSlinkerConfig = {
+		modules: symlinkModules,
+		modulesBasePath: modulesBasePath,
+		symlinkPrefix: symlinkPrefix,
+		nodeModulesPath: nodeModulesPath
+	};
 
 	function constructNodeModuleSymlinkPath(module) {
 		return path.join(nodeModulesPath, symlinkPrefix + module);
@@ -104,30 +115,24 @@ describe('indexTest', function() {
 	});
 
 	it('#link(): should add no symlinks if no directories (modules) are specified in options.modules', function(done) {
-		var allModules = symlinkModules.concat(noSymlinkModules);
+		var allModules = symlinkModules.concat(noSymlinkModules),
+			slinkerConfig = _.defaults({
+				modules: [],
+				onComplete: function() {
+					assertSymlinksNotExist(allModules);
 
-		slinker.link({
-			modules: [],
-			modulesBasePath: modulesBasePath,
-			symlinkPrefix: symlinkPrefix,
-			nodeModulesPath: nodeModulesPath,
-			onComplete: function() {
-				assertSymlinksNotExist(allModules);
+					done();
+				},
+				onError: function(err) {
+					throw Error('Unexpected error occurred while creating symlinks! ' + err);
+				}
+			}, defaultSlinkerConfig);
 
-				done();
-			},
-			onError: function(err) {
-				throw Error('Unexpected error occurred while creating symlinks! ' + err);
-			}
-		});
+		slinker.link(slinkerConfig);
 	});
 
 	it('#link(): should add a symlink for each directory (module) name specified in options.modules', function(done) {
-		slinker.link({
-			modules: symlinkModules,
-			modulesBasePath: modulesBasePath,
-			symlinkPrefix: symlinkPrefix,
-			nodeModulesPath: nodeModulesPath,
+		var slinkerConfig = _.defaults({
 			onComplete: function() {
 				assertSymlinksExist(symlinkModules);
 
@@ -136,7 +141,9 @@ describe('indexTest', function() {
 			onError: function(err) {
 				throw Error('Unexpected error occurred while creating symlinks! ' + err);
 			}
-		});
+		}, defaultSlinkerConfig);
+
+		slinker.link(slinkerConfig);
 	});
 
 });

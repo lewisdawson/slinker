@@ -1,19 +1,33 @@
 /**
- *
+ * The entrypoint of slinker.
  */
 'use strict';
 
 var _ = require('underscore'),
 	path = require('path'),
 	fs = require('fs'),
-	symlinksCreated = [];
+	symlinksCreated = [],
+	slinkerDefaults;
+
+slinkerDefaults = {
+	modules: [],
+	symlinkPrefix: '@',
+	nodeModulesPath: './node_modules'
+};
 
 /**
- * @param slinkerOptions
- * @param symlinkConfig.module
- * @param symlinkConfig.modulePath
- * @param symlinkConfig.symlinkNodeModulesPath
- * @param exists
+ * @param {Object} slinkerOptions
+ *			The options Object that was passed to the Slinker invocation
+ * @param {Object} slinkerOptions
+ *			The options Object used to configure the symlink behavior
+ * @param {String} symlinkConfig.module
+ *			The name of the module to create a symlink for
+ * @param {String} symlinkConfig.modulePath
+ *			The path to the physical module that's used for symlink creation (includes the module name)
+ * @param {String} symlinkConfig.symlinkNodeModulesPath
+ *			The path to the location where the symlink will reside (includes the module name)
+ * @param {Boolean} exists
+ *			A Boolean value that indicates if the symlink already exists
  */
 function createSymlinkIfNotExists(slinkerOptions, symlinkConfig, exists) {
 	if(!exists) {
@@ -33,7 +47,12 @@ function createSymlinkIfNotExists(slinkerOptions, symlinkConfig, exists) {
 }
 
 /**
+ * Invoked each time a symlink is created.
  *
+ * @param {Object} slinkerOptions
+ *			The options passed to slinker
+ * @param {String} module
+ *			The name of the module that was created
  */
 function onSymlinkCreated(slinkerOptions, module) {
 	symlinksCreated.push(module);
@@ -41,7 +60,11 @@ function onSymlinkCreated(slinkerOptions, module) {
 }
 
 /**
- * 
+ * Invoked when slinker has finished creating all symlinks. If an onComplete callback has
+ * been specified, it is invoked.
+ *
+ * @param {Object} slinkerOptions
+ *			The options passed to slinker
  */
 function invokeOnComplete(slinkerOptions) {
 	if(typeof slinkerOptions.onComplete === 'function' && slinkerOptions.modules.length === symlinksCreated.length) {
@@ -50,12 +73,46 @@ function invokeOnComplete(slinkerOptions) {
 }
 
 /**
+ * Invoked when slinker encounters an error during symlink creation. If an onError callback has
+ * been specified, it is invoked.
  *
+ * @param {Object} slinkerOptions
+ *			The options passed to slinker
+ * @param {String} error
+ *			The error that occurred
  */
 function invokeOnError(slinkerOptions, error) {
 	if(typeof slinkerOptions.onError === 'function') {
 		slinkerOptions.onError(error);
 	}
+}
+
+/**
+ * Checks the preconditions when slinker is invoked. Returns true if all preconditions have been
+ * met and slinker should be invoked.
+ *
+ * options {Object} options
+ *			The options passed to slinker
+ */
+function checkPreconditions(options) {
+	if(!options) {
+		throw Error("'options' must be specified!");
+	}
+
+	if(!(options.modules instanceof Array)) {
+		throw Error("'options.modules' must be an array!");
+	}
+
+	// If the modules array is empty, immediately call the onComplete() if it exists
+	if(!options.modules.length) {
+		if(options.onComplete) {
+			invokeOnComplete(options);
+		}
+		
+		return false;
+	}
+
+	return true;
 }
 
 module.exports = {
@@ -78,21 +135,25 @@ module.exports = {
 	 * 			A callback that is invoked if an error occurred while attempting to create a symlink
 	 */
 	link: function(options) {
-		_.each(options.modules, function(module) {
-			var modulePath,
-				symlinkNodeModulesPath;
+		options = _.defaults(options, slinkerDefaults);
 
-			// The actual path to the file
-			modulePath = path.join(options.modulesBasePath, module);
-			// The path to the symlink under the node_modules directory
-			symlinkNodeModulesPath = path.join(options.nodeModulesPath, options.symlinkPrefix + module);
+		if(checkPreconditions(options)) {
+			_.each(options.modules, function(module) {
+				var modulePath,
+					symlinkNodeModulesPath;
 
-			fs.exists(symlinkNodeModulesPath, _.bind(createSymlinkIfNotExists, this, options, {
-				module: module, 
-				modulePath: modulePath, 
-				symlinkNodeModulesPath: symlinkNodeModulesPath
-			}));
-		});
+				// The actual path to the file
+				modulePath = path.join(options.modulesBasePath, module);
+				// The path to the symlink under the node_modules directory
+				symlinkNodeModulesPath = path.join(options.nodeModulesPath, options.symlinkPrefix + module);
+
+				fs.exists(symlinkNodeModulesPath, _.bind(createSymlinkIfNotExists, this, options, {
+					module: module, 
+					modulePath: modulePath, 
+					symlinkNodeModulesPath: symlinkNodeModulesPath
+				}));
+			});
+		}
 	}
 
 };
