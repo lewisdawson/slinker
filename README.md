@@ -10,6 +10,12 @@ Symlinking your modules in the `node_modules` directory allows you to avoid rela
 var MyObject = require('../../../models/myObject');
 ```
 
+Instead, with the use of Slinker, you can simply use a module depedency with the follow:
+
+```javascript
+var MyObject = require('@models/myObject');
+```
+
 ## Installation
 
 ```bash
@@ -18,9 +24,11 @@ $ npm install slinker
 
 ## Usage
 
-Slinker should be invoked through a npm postInstall node application hook. For example, in your `package.json` file:
+Slinker is ideally used as a build-time tool. It should be invoked through a npm postInstall node application hook.
 
 #### package.json Configuration
+
+In your `package.json`, you can configure a postInstall hook that invokes a simple node application:
 
 ```json
 "scripts": {
@@ -30,7 +38,7 @@ Slinker should be invoked through a npm postInstall node application hook. For e
 
 #### postInstall.js Implementation
 
-Your `postInstall.js` file can invoke Slinker via the `#link()` function:
+Your `postInstall.js` application can invoke Slinker via the `#link()` function:
 
 ```javascript
 var slinker = require('slinker');
