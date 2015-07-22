@@ -18,7 +18,19 @@ $ npm install slinker
 
 ## Usage
 
-Slinker can be used by simply by invoking the `#link()` function:
+Slinker should be invoked through a npm postInstall node application hook. For example, in your `package.json` file:
+
+#### package.json Configuration
+
+```json
+"scripts": {
+    "postinstall": "node postinstall.js"
+  },
+```
+
+#### postInstall.js Implementation
+
+Your `postInstall.js` file can invoke Slinker via the `#link()` function:
 
 ```javascript
 var slinker = require('slinker');
@@ -47,7 +59,7 @@ An `Array` of module names that can be found within the `modulesBasePath`.
 
 #### modulesBasePath
 
-The `String` path under which all modules will be searched for. By default, the directory under which slinker is being invoked will be used.
+The `String` path under which all modules will be searched for. By default, the directory under which slinker is being invoked will be used. If you want the base path to be the current directory of Slinker's invocation, you can use `__dirname`.
 
 #### symlinkPrefix
 
