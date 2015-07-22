@@ -41,27 +41,27 @@ slinker.link({
 
 Slinker contains a number of configuration parameters that can be used to customize its use. Each parameter can be specified in the Object passed to the `#link()` function.
 
-### modules
+#### modules
 
 An `Array` of module names that can be found within the `modulesBasePath`.
 
-### modulesBasePath
+#### modulesBasePath
 
 The `String` path under which all modules will be searched for. By default, the directory under which slinker is being invoked will be used.
 
-### symlinkPrefix
+#### symlinkPrefix
 
 The `String` prefix used when creating the symlink. By default, the `@` symbol is used.
 
-### nodeModulesPath
+#### nodeModulesPath
 
 The `String` path of the `node_modules` folder under which the symlinks will be created. By default, the `./node_modules` path is used.
 
-### onComplete
+#### onComplete
 
 The `Function` that is invoked when the symlinking has completed. The function is passed _no_ parameters. By default, no function is specified.
 
-### onError
+#### onError
 
 The `Function` that is invoked when the an error occurs during symlinking. The function is passed a single `error` `String` arg that specifies the error that occurred.
 
@@ -73,3 +73,7 @@ To run the tests, install the node dependencies and then invoke `mocha`:
 $ npm install
 $ mocha test/indexTest.js
 ```
+
+## Notes
+
+This has only been tested in OSX so far.
