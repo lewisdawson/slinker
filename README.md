@@ -1,20 +1,24 @@
 ## slinker
 
-A simple package used to symlink node module dependencies together. At a high level, slinker takes a list of local node modules (directories) and adds symlinks for each module to the `node_modules` (or equivalent) folder.
+A simple package used to symlink node.js submodule dependencies together. At a high level, slinker takes a list of local node.js submodules (directories) and adds a symlink for each submodule to the `node_modules` (or equivalent) folder.
 
 ## Why??
 
-Symlinking your modules in the `node_modules` directory allows you to avoid relative path hell that you experience on larger node projects. It eliminates the unmaintainable references to modules similar to:
+Symlinking your submodules in the `node_modules` directory allows you to avoid relative path hell that you experience on larger node projects. It eliminates the unmaintainable references to submodules similar to:
 
 ```javascript
 var MyObject = require('../../../models/myObject');
 ```
 
-Instead, with the use of Slinker, you can simply use a module depedency with the follow:
+Instead, with the use of Slinker, you can simply use a submodule depedency with the follow:
 
 ```javascript
 var MyObject = require('@models/myObject');
 ```
+
+## Isn't That What npm link Does?
+
+Not quite. `npm link` is used to link separate node.js modules/packages together. With `npm link`, each module is considered to be a separate dependency by npm. Instead of treating everything like a separate dependency, Slinker allows you to link submodules within your application without having to break them out into separate npm module dependencies. If you're trying to keep your node.js application simple, this method reduces the complexity.
 
 ## Installation
 
@@ -63,11 +67,11 @@ Slinker contains a number of configuration parameters that can be used to custom
 
 #### modules
 
-An `Array` of module names that can be found within the `modulesBasePath`.
+An `Array` of submodule names that can be found within the `modulesBasePath`.
 
 #### modulesBasePath
 
-The `String` path under which all modules will be searched for. By default, the directory under which slinker is being invoked will be used. If you want the base path to be the current directory of Slinker's invocation, you can use `__dirname`.
+The `String` path under which all submodules will be searched for. By default, the directory under which slinker is being invoked will be used. If you want the base path to be the current directory of Slinker's invocation, you can use `__dirname`.
 
 #### symlinkPrefix
 
