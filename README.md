@@ -16,7 +16,7 @@ Instead, with the use of Slinker, you can simply use a submodule depedency with 
 var MyObject = require('@models/myObject');
 ```
 
-## Isn't That What npm link Does?
+## Isn't That What `npm link` Does?
 
 Not quite. `npm link` is used to link separate node.js modules/packages together. With `npm link`, each module is considered to be a separate dependency by npm. Instead of treating everything like a separate dependency, Slinker allows you to link submodules within your application without having to break them out into separate npm module dependencies. If you're trying to keep your node.js application simple, this method reduces the complexity.
 
