@@ -61,7 +61,7 @@ slinker.link({
 		console.log('Yay, my modules are linked!');
 	},
 	onError: function(error) {
-		console.log('Oh no, my modules aren't linked!');
+		console.log('Oh no, my modules aren\'t linked!');
 	}
 });
 ```
