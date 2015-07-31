@@ -20,6 +20,10 @@ var MyObject = require('@models/myObject');
 
 Not quite. `npm link` is used to link separate node.js modules/packages together. With `npm link`, each module is considered to be a separate dependency by npm. Instead of treating everything like a separate dependency, Slinker allows you to link submodules within your application without having to break them out into separate npm module dependencies. If you're trying to keep your node.js application simple, Slinker reduces the complexity.
 
+## Use It With Browserify!
+
+Slinker also works in conjuction with [Browserify](http://browserify.org/). It can be used to remove your relative paths. See  [here](https://github.com/substack/browserify-handbook#avoiding-) for additional details.
+
 ## Installation
 
 ```bash
@@ -45,13 +49,14 @@ In your `package.json`, you can configure a postInstall hook that invokes a simp
 Your `postInstall.js` application can invoke Slinker via the `#link()` function:
 
 ```javascript
-var slinker = require('slinker');
+var slinker = require('slinker'),
+    path = require('path');
 
 slinker.link({
-	modules: ['module_one', 'module_two'],
+	modules: ['models', 'views'],
 	modulesBasePath: __dirname,
 	symlinkPrefix: '@',
-	nodeModulesPath: './node_modules',
+	nodeModulesPath: path.join(__dirname, 'node_modules'),
 	onComplete: function() {
 		console.log('Yay, my modules are linked!');
 	},
