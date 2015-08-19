@@ -4,146 +4,169 @@
 'use strict';
 
 var should = require('chai').should(),
-	expect = require('chai').expect,
-	slinker = require('../index'),
-	fs = require('fs'),
-	path = require('path'),
-	glob = require('glob'),
-	_ = require('underscore');
+    expect = require('chai').expect,
+    slinker = require('../index'),
+    fs = require('fs'),
+    path = require('path'),
+    glob = require('glob'),
+    _ = require('underscore');
 
 describe('indexTest', function() {
 
-	var symlinkModules,
-		noSymlinkModules,
-		nodeModulesPath,
-		symlinkPrefix,
-		modulesBasePath,
-		defaultSlinkerConfig;
+    var symlinkModules,
+        noSymlinkModules,
+        relativePathSymlinkModules,
+        nodeModulesPath,
+        symlinkPrefix,
+        modulesBasePath,
+        defaultSlinkerConfig;
 
-	modulesBasePath = __dirname;
-	symlinkModules = ['module_one', 'module_three'];
-	noSymlinkModules = ['module_two'];
-	nodeModulesPath = path.join(modulesBasePath, 'mock_node_modules');
-	symlinkPrefix = '@';
+    modulesBasePath = __dirname;
+    symlinkModules = ['module_one', 'module_three'];
+    relativePathSymlinkModules = ['module_four/a/nested'];
+    noSymlinkModules = ['module_two'];
+    nodeModulesPath = path.join(modulesBasePath, 'mock_node_modules');
+    symlinkPrefix = '@';
 
-	defaultSlinkerConfig = {
-		modules: symlinkModules,
-		modulesBasePath: modulesBasePath,
-		symlinkPrefix: symlinkPrefix,
-		nodeModulesPath: nodeModulesPath
-	};
+    defaultSlinkerConfig = {
+        modules: symlinkModules,
+        modulesBasePath: modulesBasePath,
+        symlinkPrefix: symlinkPrefix,
+        nodeModulesPath: nodeModulesPath
+    };
 
-	function constructNodeModuleSymlinkPath(module) {
-		return path.join(nodeModulesPath, symlinkPrefix + module);
-	}
+    function constructNodeModuleSymlinkPath(module) {
+        var splitModule = module.split(path.sep);
 
-	/**
-	 * @parameter path
-	 *			The path on the file system of the symlink
-	 * @return true if the parameter symlink path exists, otherwise false
-	 */
-	function doesSymlinkExist(path) {
-		try {
-			fs.lstatSync(path);
-			return true;
-		} catch(err) {
-			// The symlink doesn't exist
-			return false;
-		}
-	}
+        return path.join(nodeModulesPath,
+                         symlinkPrefix + (splitModule.length === 1 ? module : splitModule[splitModule.length - 1]));
+    }
 
-	/**
-	 * Asserts that all parameter (symlink) modules exitences are equal to the parameter
-	 * exists.
-	 */
-	function assertSymlinksEqual(symlinkPaths, exists) {
-		var path,
-			i;
+    /**
+     * @parameter path
+     *            The path on the file system of the symlink
+     * @return true if the parameter symlink path exists, otherwise false
+     */
+    function doesSymlinkExist(path) {
+        try {
+            fs.lstatSync(path);
+            return true;
+        } catch (err) {
+            // The symlink doesn't exist
+            return false;
+        }
+    }
 
-		_.each(symlinkPaths, function(symlinkPath) {
-			symlinkPath = constructNodeModuleSymlinkPath(symlinkPath);
-			expect(doesSymlinkExist(symlinkPath)).to.equal(exists, 'Expected symlink "' + symlinkPath + '" to ' + (exists ? 'exist, but it doesn\'t' : 'not exist, but it does'));
-		});
-	}
+    /**
+     * Asserts that all parameter (symlink) modules exitences are equal to the parameter
+     * exists.
+     */
+    function assertSymlinksEqual(symlinkPaths, exists) {
+        _.each(symlinkPaths, function(symlinkPath) {
+            symlinkPath = constructNodeModuleSymlinkPath(symlinkPath);
+            expect(doesSymlinkExist(symlinkPath)).to.equal(exists, 'Expected symlink "' + symlinkPath + '" to ' +
+                                                                   (exists ? 'exist, but it doesn\'t' :
+                                                                    'not exist, but it does'));
+        });
+    }
 
-	/**
-	 * Assert that all parameter symlinkPaths exist.
-	 *
-	 * @param symlinkPaths
-	 *			The array of symlink paths to assert
-	 */
-	function assertSymlinksExist(symlinkPaths) {
-		assertSymlinksEqual(symlinkPaths, true);
-	}
+    /**
+     * Assert that all parameter symlinkPaths exist.
+     *
+     * @param symlinkPaths
+     *            The array of symlink paths to assert
+     */
+    function assertSymlinksExist(symlinkPaths) {
+        assertSymlinksEqual(symlinkPaths, true);
+    }
 
-	/**
-	 * Assert that all parameter symlinkPaths do not exist.
-	 *
-	 * @param symlinkPaths
-	 *			The array of symlink paths to assert
-	 */
-	function assertSymlinksNotExist(symlinkPaths) {
-		assertSymlinksEqual(symlinkPaths, false);
-	}
+    /**
+     * Assert that all parameter symlinkPaths do not exist.
+     *
+     * @param symlinkPaths
+     *            The array of symlink paths to assert
+     */
+    function assertSymlinksNotExist(symlinkPaths) {
+        assertSymlinksEqual(symlinkPaths, false);
+    }
 
-	/**
-	 * Removes all existing symlinks from the test directory.
-	 */
-	function removeExistingSymlinks(onComplete) {
-		var globPath = path.join(nodeModulesPath, symlinkPrefix + '**'); 
+    /**
+     * Removes all existing symlinks from the test directory.
+     */
+    function removeExistingSymlinks(onComplete) {
+        var globPath = path.join(nodeModulesPath, symlinkPrefix + '**');
 
-		glob(globPath, function(err, files) {
-			_.each(files, function(file) {
-				fs.unlinkSync(file);
-			});
+        glob(globPath, function(err, files) {
+            _.each(files, function(file) {
+                fs.unlinkSync(file);
+            });
 
-			onComplete();
-		});
-	}
+            onComplete();
+        });
+    }
 
-	/**
-	 * Executed before each test.
-	 */
-	beforeEach(function(done) {
-		var allModules = symlinkModules.concat(noSymlinkModules);
-		
-		removeExistingSymlinks(function() {
-			assertSymlinksNotExist(allModules);
+    /**
+     * Executed before each test.
+     */
+    beforeEach(function(done) {
+        var allModules = symlinkModules.concat(noSymlinkModules);
 
-			done();
-		});
-	});
+        slinker.reset();
 
-	it('#link(): should add no symlinks if no directories (modules) are specified in options.modules', function(done) {
-		var allModules = symlinkModules.concat(noSymlinkModules),
-			slinkerConfig = _.defaults({
-				modules: [],
-				onComplete: function() {
-					assertSymlinksNotExist(allModules);
+        removeExistingSymlinks(function() {
+            assertSymlinksNotExist(allModules);
 
-					done();
-				},
-				onError: function(err) {
-					throw Error('Unexpected error occurred while creating symlinks! ' + err);
-				}
-			}, defaultSlinkerConfig);
+            done();
+        });
+    });
 
-		slinker.link(slinkerConfig);
-	});
+    it('#link(): should add no symlinks if no directories (modules) are specified in options.modules', function(done) {
+        var allModules = symlinkModules.concat(noSymlinkModules),
+            slinkerConfig = _.defaults({
+                modules: [],
+                onComplete: function() {
+                    assertSymlinksNotExist(allModules);
 
-	it('#link(): should add a symlink for each directory (module) name specified in options.modules', function(done) {
-		var slinkerConfig = _.defaults({
-			onComplete: function() {
-				assertSymlinksExist(symlinkModules);
+                    done();
+                },
+                onError: function(err) {
+                    throw Error('Unexpected error occurred while creating symlinks! ' + err);
+                }
+            }, defaultSlinkerConfig);
 
-				done();
-			},
-			onError: function(err) {
-				throw Error('Unexpected error occurred while creating symlinks! ' + err);
-			}
-		}, defaultSlinkerConfig);
+        slinker.link(slinkerConfig);
+    });
 
-		slinker.link(slinkerConfig);
-	});
+    it('#link(): should add a symlink for each directory (module) name specified in options.modules', function(done) {
+        var slinkerConfig = _.defaults({
+            onComplete: function() {
+                assertSymlinksExist(symlinkModules);
+
+                done();
+            },
+            onError: function(err) {
+                throw Error('Unexpected error occurred while creating symlinks! ' + err);
+            }
+        }, defaultSlinkerConfig);
+
+        slinker.link(slinkerConfig);
+    });
+
+    it('#link(): should add a symlink for a relative path directory, and the symlink should have the name of the deepest directory of the path',
+       function(done) {
+           var slinkerConfig = _.defaults({
+               modules: relativePathSymlinkModules,
+               onComplete: function() {
+                   assertSymlinksExist(relativePathSymlinkModules);
+
+                   done();
+               },
+               onError: function(err) {
+                   throw Error('Unexpected error occurred while creating symlinks! ' + err);
+               }
+           }, defaultSlinkerConfig);
+
+           slinker.link(slinkerConfig);
+       });
 
 });
