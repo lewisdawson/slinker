@@ -1,5 +1,7 @@
 ## slinker
 
+[![Build Status](https://travis-ci.org/lewisdawson/slinker.svg)](https://travis-ci.org/lewisdawson/slinker)
+
 A simple package used to symlink [Browserify](http://browserify.org/) dependencies as well as node.js submodule dependencies. At a high level, slinker takes a list of local node.js submodules (directories) and adds a symlink for each submodule to the `node_modules` (or equivalent) folder.
 
 ## Why??
