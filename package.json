@@ -4,7 +4,7 @@
   "description": "A simple module used to symlink node module dependencies together.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/indexTest.js"
+    "test": "./node_modules/mocha/bin/mocha test/indexTest.js"
   },
   "repository": {
     "type": "git",
