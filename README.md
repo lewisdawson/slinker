@@ -74,6 +74,22 @@ Slinker contains a number of configuration parameters that can be used to custom
 
 An `Array` of submodule names that can be found within the `modulesBasePath`.
 
+###### Relative Paths
+
+A submodule name can also be a path to a subdirectory, relative to the `modulesBasePath` directory. The inner-most subdirectory name is used for the name of the symlink. For example:
+ 
+ ```javascript
+ slinker.link({
+ 	modules: ['path/to/models'],
+ 	modulesBasePath: __dirname,
+    symlinkPrefix: '@',
+    nodeModulesPath: path.join(__dirname, 'node_modules'),
+ 	// other configs below
+ });
+ ```
+ 
+ This will result in a symlink named `@models`, linked to `__dirname/path/to/models`, under the `__dirname/node_modules` directory.
+
 #### modulesBasePath
 
 The `String` path under which all submodules will be searched for. By default, the directory under which slinker is being invoked will be used. If you want the base path to be the current directory of Slinker's invocation, you can use `__dirname`.
