@@ -16,6 +16,7 @@ describe('indexTest', function() {
     var symlinkModules,
         noSymlinkModules,
         relativePathSymlinkModules,
+        aliasedSymlinkModules,
         nodeModulesPath,
         symlinkPrefix,
         modulesBasePath,
@@ -24,6 +25,10 @@ describe('indexTest', function() {
     modulesBasePath = __dirname;
     symlinkModules = ['module_one', 'module_three'];
     relativePathSymlinkModules = ['module_four/a/nested'];
+    aliasedSymlinkModules = [{
+        module: 'module_one',
+        alias: 'module_one_alias'
+    }];
     noSymlinkModules = ['module_two'];
     nodeModulesPath = path.join(modulesBasePath, 'mock_node_modules');
     symlinkPrefix = '@';
@@ -35,11 +40,21 @@ describe('indexTest', function() {
         nodeModulesPath: nodeModulesPath
     };
 
-    function constructNodeModuleSymlinkPath(module) {
-        var splitModule = module.split(path.sep);
+    function isModuleObject(module) {
+        return (module && typeof(module) === 'object' && !Array.isArray(module));
+    }
 
-        return path.join(nodeModulesPath,
-                         symlinkPrefix + (splitModule.length === 1 ? module : splitModule[splitModule.length - 1]));
+    function constructNodeModuleSymlinkPath(module) {
+        var splitModule;
+
+        if(isModuleObject(module)) {
+            module = module.alias;
+        } else {
+            splitModule = module.split(path.sep);
+            module = (splitModule.length === 1 ? module : splitModule[splitModule.length - 1]);
+        }
+
+        return path.join(nodeModulesPath, symlinkPrefix + module);
     }
 
     /**
@@ -158,6 +173,23 @@ describe('indexTest', function() {
                modules: relativePathSymlinkModules,
                onComplete: function() {
                    assertSymlinksExist(relativePathSymlinkModules);
+
+                   done();
+               },
+               onError: function(err) {
+                   throw Error('Unexpected error occurred while creating symlinks! ' + err);
+               }
+           }, defaultSlinkerConfig);
+
+           slinker.link(slinkerConfig);
+       });
+
+    it('#link(): should add a symlink for a directory (module), where the symlink name is the alias specified in the module object definition',
+       function(done) {
+           var slinkerConfig = _.defaults({
+               modules: aliasedSymlinkModules,
+               onComplete: function() {
+                   assertSymlinksExist(aliasedSymlinkModules);
 
                    done();
                },

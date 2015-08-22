@@ -33,16 +33,16 @@ function createSymlinkIfNotExists(slinkerOptions, symlinkConfig, exists) {
     if (!exists) {
         fs.symlink(symlinkConfig.modulePath, symlinkConfig.symlinkNodeModulesPath, 'file', function(err) {
             if (err) {
-                console.log("Error creating symlink for module '" + symlinkConfig.module + "'! " + err);
+                console.log("Error creating symlink for module '" + symlinkConfig.moduleAlias + "'! " + err);
                 invokeOnError(slinkerOptions, err);
             } else {
-                console.log("Symlink for module '" + symlinkConfig.module + "' created.");
+                console.log("Symlink for module '" + symlinkConfig.moduleAlias + "' created.");
                 onSymlinkCreated(slinkerOptions, symlinkConfig.module);
             }
         });
     } else {
-        console.log("Symlink for module '" + symlinkConfig.module + "' already exists. No op.");
-        onSymlinkCreated(slinkerOptions, symlinkConfig.module);
+        console.log("Symlink for module '" + symlinkConfig.moduleAlias + "' already exists. No op.");
+        onSymlinkCreated(slinkerOptions, symlinkConfig.moduleAlias);
     }
 }
 
@@ -51,11 +51,11 @@ function createSymlinkIfNotExists(slinkerOptions, symlinkConfig, exists) {
  *
  * @param {Object} slinkerOptions
  *            The options passed to slinker
- * @param {String} module
+ * @param {String} moduleAlias
  *            The name of the module that was created
  */
-function onSymlinkCreated(slinkerOptions, module) {
-    symlinksCreated.push(module);
+function onSymlinkCreated(slinkerOptions, moduleAlias) {
+    symlinksCreated.push(moduleAlias);
     invokeOnComplete(slinkerOptions);
 }
 
@@ -116,21 +116,76 @@ function checkPreconditions(options) {
 }
 
 /**
- * Determines from the module path, what the name of the symlink should be. The deepest name in the path is used. For
- * example, if the module is `my/module/path/is/cool`, then the symlink name would be `cool`.
- *
  * @param module
- *            The module path used to determine the name of the symlink
- * @return The name of the symlink, derived from the deepest path of the module
+ *          The module parameter to determine the type of
+ * @returns True if the parameter module is an Object, other false.
  */
-function getSymlinkNameFromModule(module) {
-    var splitModule = module.split(path.sep);
+function isModuleObject(module) {
+    return (module && typeof(module) === 'object' && !Array.isArray(module));
+}
 
-    if (splitModule.length === 1) {
-        return module;
+/**
+ * @param module
+ *          The module string or object
+ * @returns The module's path for the parameter module. If the parameter module is a JS object, then the `module`
+ *     property for the module is returned.
+ */
+function getModulePathProperty(module) {
+    var path = module;
+
+    if (isModuleObject(module)) {
+        path = module.module;
+
+        if (!path) {
+            throw 'A module Object must contain the \'module\' definition!';
+        }
     }
 
-    return splitModule[splitModule.length - 1];
+    return path;
+}
+
+/**
+ * @param module
+ *          The module definition to retrieve the alias from
+ * @returns The alias for the module if it's a JS object. Otherwise, return null.
+ */
+function getModuleAliasProperty(module) {
+    var name = null;
+
+    if (isModuleObject(module) && module.alias) {
+        name = module.alias;
+    }
+
+    return name;
+}
+
+/**
+ * Determines from the module path, what the name of the symlink should be. The deepest name in the path is used. For
+ * example, if the module is `my/module/path/is/cool`, then the symlink name would be `cool`. If the module is an
+ * object and the object contains the `alias` property, then the `alias` property is used for the symlink name.
+ *
+ * @param module
+ *            The module path or object used to determine the name of the symlink
+ * @return The name of the symlink, derived from the deepest path of the module or the module `alias`
+ */
+function getSymlinkNameFromModule(module) {
+    var name = null,
+        splitModule;
+
+    name = getModuleAliasProperty(module);
+    // If the module is not an Object or the alias wasn't specified, split the module path (if necessary)
+    if (name == null) {
+        module = getModulePathProperty(module);
+        splitModule = module.split(path.sep);
+
+        if (splitModule.length === 1) {
+            return module;
+        }
+
+        return splitModule[splitModule.length - 1];
+    }
+
+    return name;
 }
 
 module.exports = {
@@ -165,16 +220,21 @@ module.exports = {
         if (checkPreconditions(options)) {
             _.each(options.modules, function(module) {
                 var modulePath,
+                    moduleAlias,
                     symlinkNodeModulesPath;
 
+                modulePath = getModulePathProperty(module);
                 // The actual path to the file
-                modulePath = path.join(options.modulesBasePath, module);
+                modulePath = path.join(options.modulesBasePath, modulePath);
+
+                // Get the alias namve for the module
+                moduleAlias = getSymlinkNameFromModule(module);
                 // The path to the symlink under the node_modules directory
                 symlinkNodeModulesPath =
-                    path.join(options.nodeModulesPath, options.symlinkPrefix + getSymlinkNameFromModule(module));
+                    path.join(options.nodeModulesPath, options.symlinkPrefix + moduleAlias);
 
                 fs.exists(symlinkNodeModulesPath, _.bind(createSymlinkIfNotExists, this, options, {
-                    module: module,
+                    moduleAlias: moduleAlias,
                     modulePath: modulePath,
                     symlinkNodeModulesPath: symlinkNodeModulesPath
                 }));
