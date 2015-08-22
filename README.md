@@ -1,5 +1,7 @@
 ## slinker
 
+[![Build Status](https://travis-ci.org/lewisdawson/slinker.svg)](https://travis-ci.org/lewisdawson/slinker)
+
 A simple package used to symlink [Browserify](http://browserify.org/) dependencies as well as node.js submodule dependencies. At a high level, slinker takes a list of local node.js submodules (directories) and adds a symlink for each submodule to the `node_modules` (or equivalent) folder.
 
 ## Why??
@@ -73,6 +75,38 @@ Slinker contains a number of configuration parameters that can be used to custom
 #### modules
 
 An `Array` of submodule names that can be found within the `modulesBasePath`.
+
+###### Relative Paths
+
+A submodule name can also be a path to a subdirectory, relative to the `modulesBasePath` directory. The inner-most subdirectory name is used for the name of the symlink. For example:
+ 
+```javascript
+slinker.link({
+	modules: ['path/to/models'],
+	modulesBasePath: __dirname,
+	symlinkPrefix: '@',
+	nodeModulesPath: path.join(__dirname, 'node_modules'),
+	// other configs below
+});
+ ```
+
+This will result in a symlink named `@models`, linked to `__dirname/path/to/models`, under the `__dirname/node_modules` directory.
+
+###### module Definition Object
+
+A submodule name can also be aliased if you prefer that the symlink is a name other than the actual submodule name. To utilize the aliasing, an Object that contains the `module` and the `alias` properties. The `module` property is the name/path of the submodule while the `alias` property is the alias name of the the symlink to be used. For example:
+
+```javascript
+slinker.link({
+	modules: [{ module: 'models', alias: 'awesome_models'}],
+	modulesBasePath: __dirname,
+	symlinkPrefix: '@',
+	nodeModulesPath: path.join(__dirname, 'node_modules'),
+	// other configs below
+});
+ ```
+
+This will create a symlink in the `nodeModulesPath` directory named `@awesome_models` that points to the `__dirname/models` directory. The `module` property must still be a valid module name or relative path that is relative to the `modulesBasePath` directory.
 
 #### modulesBasePath
 
